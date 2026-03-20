@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>日本中部家庭旅遊</title>
+    
+    <!-- 加入手機主畫面 (Add to Home Screen) 的專屬圖示設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="日本旅遊">
+    <meta name="theme-color" content="#B86F72">
+    
+    <!-- 桌面圖示：加入尺寸宣告與 ?v=2 快取破解碼 (確保圖片為正方形且無透明背景) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon.png?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon.png?v=2">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'morandi-bg': '#F7F4F2',
+                        'morandi-red': '#B86F72',
+                        'morandi-red-light': '#E8D5D6',
+                        'morandi-red-dark': '#8C4F52',
+                        'morandi-text': '#5A504E',
+                        'morandi-text-light': '#8E8584',
+                        'morandi-card': '#FFFFFF',
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px rgba(184, 111, 114, 0.08)',
+                        'inner-soft': 'inset 0 2px 4px rgba(0, 0, 0, 0.02)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'LiHei Pro', '微軟正黑體', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #e5e5e5;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E8D5D6; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #B86F72; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        .slide-in-right { animation: slideInRight 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        textarea { resize: none; }
+        textarea:focus {
+            outline: none;
+            border-color: #B86F72;
+            box-shadow: 0 0 0 3px rgba(184, 111, 114, 0.2);
+        }
+    </style>
+</head>
+<body class="text-morandi-text min-h-screen flex justify-center relative">
+
+    <!-- Toast 訊息提示 -->
+    <div id="toast-msg" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[130] hidden bg-morandi-text text-white px-6 py-3 rounded-full shadow-lg text-sm font-bold transition-all duration-300 opacity-0 translate-y-[-20px]">
+        訊息內容
+    </div>
+
+    <!-- 管理員密碼 Modal -->
+    <div id="admin-modal" class="fixed inset-0 z-[120] hidden bg-black/60 flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-morandi-bg w-full max-w-sm rounded-2xl p-6 shadow-2xl relative text-center">
+            <h3 class="text-xl font-bold text-morandi-red mb-2">管理員權限</h3>
+            <p class="text-sm text-morandi-text-light mb-5">請輸入密碼</p>
+            <input type="password" id="admin-pwd-input" class="w-full bg-white border border-morandi-red-light rounded-xl p-3 text-lg text-morandi-text focus:border-morandi-red transition-colors mb-2 text-center tracking-widest outline-none" placeholder="輸入密碼">
+            <p id="admin-error-msg" class="text-xs text-red-500 mb-4 hidden">密碼錯誤，請重新嘗試。</p>
+            <div class="flex justify-center space-x-3 mt-4">
+                <button onclick="closeAdminModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-morandi-text-light hover:bg-morandi-red-light/30 transition-colors">取消</button>
+                <button onclick="verifyAdmin()" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-morandi-red text-white shadow-sm hover:bg-morandi-red-dark transition-colors">確認解鎖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖片放大 Modal -->
+    <div id="image-modal" class="fixed inset-0 z-[100] hidden bg-black/80 flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <button onclick="closeImageModal()" class="absolute top-6 right-6 text-white hover:text-morandi-red-light p-2 bg-black/50 rounded-full">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <img id="modal-image" src="" class="max-w-full max-h-[80vh] rounded-lg shadow-2xl object-contain" alt="放大照片">
+    </div>
+
+    <!-- 編輯用 Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-[110] hidden bg-black/60 flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-morandi-bg w-full max-w-sm rounded-2xl p-5 shadow-2xl relative">
+            <h3 id="edit-title" class="text-lg font-bold text-morandi-red mb-2">編輯內容</h3>
+            <p id="edit-helper-text" class="text-[11px] text-morandi-red-dark mb-3 hidden bg-morandi-red-light/30 p-2.5 rounded-lg leading-relaxed"></p>
+            <textarea id="edit-textarea" class="w-full h-40 bg-white border border-morandi-red-light rounded-xl p-3 text-sm text-morandi-text focus:border-morandi-red transition-colors mb-4"></textarea>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeEditModal()" class="px-4 py-2 rounded-lg text-sm font-bold text-morandi-text-light hover:bg-morandi-red-light/30">取消</button>
+                <button onclick="saveEdit()" class="px-4 py-2 rounded-lg text-sm font-bold bg-morandi-red text-white shadow-sm hover:bg-morandi-red-dark">儲存雲端</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 行李清單 Modal (互動版) -->
+    <div id="luggage-modal" class="fixed inset-0 z-[115] hidden bg-black/60 flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-morandi-bg w-full max-w-sm rounded-2xl p-5 shadow-2xl relative flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-morandi-red flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    行李清單
+                </h3>
+                <div class="flex items-center space-x-2">
+                    <button id="luggage-edit-toggle-btn" onclick="toggleLuggageEditMode()" class="hidden text-xs bg-white text-morandi-red border border-morandi-red-light px-2.5 py-1 rounded-lg shadow-sm active:scale-95 transition-colors hover:bg-morandi-red/10 font-bold">編輯清單</button>
+                    <button onclick="closeLuggageModal()" class="text-morandi-text-light hover:text-morandi-red p-1 bg-white rounded-full shadow-sm border border-morandi-red-light/30 active:scale-95 transition-transform">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 檢視與勾選模式 (改為雙行網格排版) -->
+            <div id="luggage-checklist-view" class="w-full flex-1 overflow-y-auto grid grid-cols-2 gap-2 content-start pr-1 pb-2">
+                <!-- Checkboxes will be dynamically rendered here -->
+            </div>
+
+            <!-- 管理員編輯模式 -->
+            <textarea id="luggage-modal-textarea" class="hidden w-full flex-1 min-h-[40vh] bg-white border border-morandi-red-light rounded-xl p-4 text-sm text-morandi-text focus:border-morandi-red transition-colors placeholder-morandi-text-light/50 leading-relaxed resize-none" placeholder="輸入行李項目，每行一項..."></textarea>
+            
+            <div class="mt-4 flex justify-end hidden flex-shrink-0" id="luggage-save-btn-container">
+                <button onclick="saveLuggage()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-morandi-red text-white shadow-sm hover:bg-morandi-red-dark w-full">儲存並同步給所有人</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 應用程式容器 (模擬手機大小) -->
+    <div id="app" class="w-full max-w-md bg-morandi-bg min-h-screen shadow-2xl relative overflow-x-hidden overflow-y-auto">
+        <!-- 內容由 JS 動態渲染 -->
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- 狀態變數 ---
+        let isAdmin = localStorage.getItem('tripAdmin') === 'true';
+        let currentEditTarget = null;
+        let cloudMemo = localStorage.getItem('localMemo') || "";
+        let cloudRules = localStorage.getItem('localRules') || "a. 不抱怨、不生氣、不放馬後炮\nb. 有問題就說，有廁所就上\nc. 開開心心出門平平安安回家";
+        let cloudMapLink = localStorage.getItem('localMapLink') || "#";
+        let cloudLuggage = localStorage.getItem('localLuggage') || "護照必帶\n日幣與信用卡\n網卡或漫遊設定\n換洗衣物與外套\n常備藥品";
+        let personalLuggageState = JSON.parse(localStorage.getItem('personalLuggageState') || '{}'); // 紀錄個人的打勾狀態
+        let cloudFlight = JSON.parse(localStorage.getItem('localFlight')) || [
+            { type: 'outbound', label: '去程', date: '4/11 (週六)', flight: 'JL8670', t1: '14:05', p1: 'TPE 桃園', t2: '17:55', p2: 'NGO 中部' },
+            { type: 'inbound', label: '回程', date: '4/19 (週日)', flight: 'JL8671', t1: '10:40', p1: 'NGO 中部', t2: '12:45', p2: 'TPE 桃園' },
+            { type: 'note', text: '免費託運行李：2件 (每件 23kg) / 人' }
+        ];
+
+        // --- 攔截器：強制覆寫特定資料避免跑版 ---
+        function applyDataOverrides(dataArray) {
+            dataArray.forEach(d => {
+                // 強制 Day 7 斷成兩行，無視雲端或暫存的單行紀錄
+                if (d.day === 7 && d.shortTitle && d.shortTitle.includes('名花之里')) {
+                    d.shortTitle = "樂高樂園<br>名花之里";
+                }
+                // 強制 Day 9 替換為完美的 45 度幾何對稱飛機 SVG
+                if (d.day === 9) {
+                    d.iconSvg = '<g transform="rotate(45 12 12)"><path stroke-linejoin="round" d="M12 2.5C11 2.5 10 3.5 10 5V10L3 15V17L10 15.5V20.5L8 22V23L12 22L16 23V22L14 20.5V15.5L21 17V15L14 10V5C14 3.5 13 2.5 12 2.5Z"/></g>';
+                }
+            });
+        }
+
+        // --- 行程資料預設值 ---
+        let tripData = [
+            {
+                day: 1, date: "4/11", weekday: "Sat",
+                shortTitle: "直奔高山",
+                iconSvg: '<path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a2 2 0 0 0-1.6-.8H6a2 2 0 0 0-2 2v7.5h2m11 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm-11 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/>',
+                main: "抵達日本、包車直達高山",
+                schedule: [
+                    { time: "--:--", event: "機場接送", note: "預計--:--抵達桃園機場T2" },
+                    { time: "14:05-17:55", event: "班機時間 (抵達日本)" },
+                    { time: "18:40-19:00", event: "入境時間 (預抓)", type: "minor" },
+                    { time: "19:00", event: "機場接送司機會合" },
+                    { time: "前往高山", event: "中途停靠休息站30mins", note: "可在此購買一些晚餐小食" },
+                    { time: "22:00-22:30", event: "入住 AMANEK HidaTakayama" }
+                ],
+                dining: [
+                    { meal: "晚餐", name: "休息站全家超商、小點", img: "" }
+                ],
+                hotel: "AMANEK HidaTakayama",
+                hotelMap: "https://maps.app.goo.gl/euBWyBtCBUXiWDzJ9",
+                bookingPlatform: "Booking.com",
+                rooms: [
+                    { guest: "爸媽", type: "高級雙床含早餐", img: "image_e1d910.jpg" },
+                    { guest: "魚昆", type: "高級大床不含早", img: "image_e1d628.jpg" }
+                ],
+                otherInfo: ""
+            },
+            {
+                day: 2, date: "4/12", weekday: "Sun",
+                shortTitle: "新穗高纜車",
+                iconSvg: '<path d="M4 3h16M12 3v4M5 7h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zM8 17v4M16 17v4"/>',
+                main: "新穗高纜車、高山老街",
+                schedule: [
+                    { time: "6:30-10:00", event: "早餐 (飯店/超商)" },
+                    { time: "7:40-13:40", event: "高山巴士發車時間 (每小一班)" },
+                    { time: "1h45m", event: "新穗高纜車" },
+                    { time: "14:55-17:55", event: "回程巴士發車時間 (每小一班)" },
+                    { time: "下午", event: "逛高山老街" }
+                ],
+                dining: [
+                    { meal: "午餐", name: "山上的咖啡廳 / 自備", img: "" },
+                    { meal: "晚餐", name: "飛驒牛 (丸明 / 味藏天國)", img: "" }
+                ],
+                hotel: "AMANEK HidaTakayama",
+                hotelMap: "https://maps.app.goo.gl/euBWyBtCBUXiWDzJ9"
+            },
+            {
+                day: 3, date: "4/13", weekday: "Mon",
+                shortTitle: "合掌村",
+                iconSvg: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+                main: "宮川朝市、合掌村、前往犬山",
+                schedule: [
+                    { time: "6:30-10:00", event: "早餐 (飯店/超商)" },
+                    { time: "7:00-12:00", event: "逛宮川朝市" },
+                    { time: "早上", event: "飯店退房 (CO)", type: "minor" },
+                    { time: "9:00", event: "Toyota高山站牽車，前往合掌村 (1h)" },
+                    { time: "13:00", event: "離開前往犬山 (2h)", type: "minor" },
+                    { time: "15:00-16:00", event: "犬山英迪格 CI (有樂苑參觀)" }
+                ],
+                dining: [
+                    { meal: "午餐", name: "合掌村周邊", img: "" },
+                    { meal: "晚餐", name: "犬山周邊", img: "" }
+                ],
+                hotel: "犬山有樂苑英迪格酒店",
+                hotelMap: "https://maps.app.goo.gl/WbuRcPtcYNSUAUi5A"
+            },
+            {
+                day: 4, date: "4/14", weekday: "Tue",
+                shortTitle: "犬山城",
+                iconSvg: '<path d="M12 2v3M9 5h6l2 3H7l2-3zm0 3v3h6V8M7 11h10l2 3H5l2-3zm0 3v4h10v-4M4 18h16l1 4H3l1-4zm6 4v-3h4v3" />',
+                main: "犬山城、前往名古屋市區",
+                schedule: [
+                    { time: "7:00-11:00", event: "早餐 (飯店)" },
+                    { time: "早上", event: "三光稻荷神社、犬山城、犬山城下町" },
+                    { time: "15:00", event: "離開前往名古屋 (1h)" },
+                    { time: "~18:00", event: "Toyota丸之內站前還車", type: "minor" },
+                    { time: "下午", event: "錦威斯特酒店 CI" },
+                    { time: "晚上", event: "逛 榮、電視塔、綠洲21" }
+                ],
+                dining: [
+                    { meal: "午餐", name: "田樂茶屋", img: "" },
+                    { meal: "晚餐", name: "榮商圈", img: "" }
+                ],
+                hotel: "錦威斯特酒店 (Nishitetsu Hotel Croom)",
+                hotelMap: "https://maps.app.goo.gl/vensZNM4TzxvivyYA"
+            },
+            {
+                day: 5, date: "4/15", weekday: "Wed",
+                shortTitle: "吉卜力公園",
+                iconSvg: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+                main: "吉卜力公園 (魔女之谷、大倉庫)",
+                schedule: [
+                    { time: "8:00", event: "出門" },
+                    { time: "交通", event: "地鐵1h：榮 > 藤之丘 > 愛地球公園", type: "minor" },
+                    { time: "10:00", event: "開門：吉卜力公園 (魔女之谷、搶羅森堡整理券)" },
+                    { time: "14:00", event: "大倉庫" },
+                    { time: "17:00", event: "閉園，地鐵1h回程" }
+                ],
+                dining: [
+                    { meal: "早餐", name: "客美多咖啡 或 Konparu", img: "" },
+                    { meal: "午餐", name: "門口lawson / 園內餐廳", img: "" },
+                    { meal: "晚餐", name: "Toraya Vegetiger 或 山本屋", img: "" }
+                ],
+                hotel: "錦威斯特酒店 (Nishitetsu Hotel Croom)",
+                hotelMap: "https://maps.app.goo.gl/vensZNM4TzxvivyYA"
+            },
+            {
+                day: 6, date: "4/16", weekday: "Thu",
+                shortTitle: "名古屋市區",
+                iconSvg: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/>',
+                main: "名古屋城、熱田神宮、大須觀音",
+                schedule: [
+                    { time: "早上", event: "名古屋城 (名古屋城櫻花節)" },
+                    { time: "下午", event: "熱田神宮" },
+                    { time: "下午", event: "大須觀音商店街" }
+                ],
+                dining: [
+                    { meal: "早餐", name: "Kato Coffee Sakae", img: "" },
+                    { meal: "午餐", name: "harbs", img: "" },
+                    { meal: "晚餐", name: "大須觀音或榮商圈周邊", img: "" }
+                ],
+                hotel: "錦威斯特酒店 (Nishitetsu Hotel Croom)",
+                hotelMap: "https://maps.app.goo.gl/vensZNM4TzxvivyYA"
+            },
+            {
+                day: 7, date: "4/17", weekday: "Fri",
+                shortTitle: "樂高樂園<br>名花之里",
+                iconSvg: '<circle cx="12" cy="11" r="8"/><circle cx="12" cy="11" r="2"/><path d="M12 11l-3 11M12 11l3 11M7 22h10M12 3v8M12 13v6M4 11h16M6.3 6.3l3.5 3.5M14.2 14.2l3.5 3.5M17.7 6.3l-3.5 3.5M9.8 14.2l-3.5 3.5"/>',
+                main: "樂高樂園、名花之里",
+                schedule: [
+                    { time: "交通", event: "名古屋站買票，地鐵1h > 名古屋站 > 金城埠頭", type: "minor" },
+                    { time: "10:00", event: "開門：樂高樂園" },
+                    { time: "下午", event: "名花之里 / 德川園 / 刀劍博物館" },
+                    { time: "晚上", event: "名古屋站地下街伴手禮" }
+                ],
+                dining: [
+                    { meal: "午餐", name: "Grains 或 麵家獅子丸", img: "" },
+                    { meal: "晚餐", name: "周邊或地下街", img: "" }
+                ],
+                hotel: "錦威斯特酒店 (Nishitetsu Hotel Croom)",
+                hotelMap: "https://maps.app.goo.gl/vensZNM4TzxvivyYA"
+            },
+            {
+                day: 8, date: "4/18", weekday: "Sat",
+                shortTitle: "常滑招財貓",
+                iconSvg: '<path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.4-.58 4.5.18 6.28 2.12.7-.2 1.44-.3 2.12-.3Z"/>',
+                main: "前往機場飯店",
+                schedule: [
+                    { time: "早上", event: "40min 久屋大通 > 金山 > 機場", type: "minor" },
+                    { time: "下午", event: "Comfort Hotel 中央機場 CI" }
+                ],
+                dining: [
+                    { meal: "早餐", name: "飯店或周邊", img: "" },
+                    { meal: "午/晚餐", name: "機場周邊", img: "" }
+                ],
+                hotel: "Comfort Hotel 中部國際機場",
+                hotelMap: "https://maps.app.goo.gl/3JoSXNtXALKQeK2o7"
+            },
+            {
+                day: 9, date: "4/19", weekday: "Sun",
+                shortTitle: "回家嚕",
+                iconSvg: '<g transform="rotate(45 12 12)"><path stroke-linejoin="round" d="M12 2.5C11 2.5 10 3.5 10 5V10L3 15V17L10 15.5V20.5L8 22V23L12 22L16 23V22L14 20.5V15.5L21 17V15L14 10V5C14 3.5 13 2.5 12 2.5Z"/></g>',
+                main: "搭機回程",
+                schedule: [
+                    { time: "6:30-9:00", event: "早餐 (飯店)" },
+                    { time: "早上", event: "飯店退房 (CO)" },
+                    { time: "10:40-12:45", event: "班機時間，準備回程" }
+                ],
+                dining: [
+                    { meal: "早餐", name: "飯店", img: "" }
+                ],
+                hotel: "溫暖的家"
+            }
+        ];
+
+        applyDataOverrides(tripData);
+
+        // 嘗試讀取本地端備份
+        const localSavedData = localStorage.getItem('localTripData');
+        if (localSavedData) {
+            try { 
+                tripData = JSON.parse(localSavedData); 
+                applyDataOverrides(tripData);
+            } catch(e) {}
+        }
+
+        // --- 您專屬的 Firebase 雲端初始化設定 ---
+        let isCloudEnabled = false;
+        let auth, db, appId;
+
+        try {
+            const firebaseConfig = {
+              apiKey: "AIzaSyBLev7BsDbo3pErlazCh2ixIuhrgI14a6o",
+              authDomain: "familytrip-4f7ac.firebaseapp.com",
+              projectId: "familytrip-4f7ac",
+              storageBucket: "familytrip-4f7ac.firebasestorage.app",
+              messagingSenderId: "372741272727",
+              appId: "1:372741272727:web:9ce5b3ac7be915eef625d2",
+              measurementId: "G-SEMH200HLC"
+            };
+            
+            const firebaseApp = initializeApp(firebaseConfig);
+            auth = getAuth(firebaseApp);
+            db = getFirestore(firebaseApp);
+            appId = 'japan-trip-2026';
+            isCloudEnabled = true;
+        } catch(error) {
+            console.warn("Firebase 初始化失敗，切換為本地模式:", error);
+        }
+
+        async function initAuth() {
+            if (!isCloudEnabled) return;
+            try {
+                await signInAnonymously(auth);
+            } catch (e) {
+                console.error("登入失敗，請確認 Firebase Authentication 的 Anonymous (匿名登入) 是否已在後台啟用！", e);
+            }
+        }
+
+        if (isCloudEnabled) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'tripInfo', 'main');
+                    onSnapshot(docRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.data();
+                            if (data.tripData) {
+                                tripData = data.tripData;
+                                applyDataOverrides(tripData);
+                            }
+                            if (data.memo !== undefined) cloudMemo = data.memo;
+                            if (data.rules !== undefined) cloudRules = data.rules;
+                            if (data.mapLink !== undefined) cloudMapLink = data.mapLink;
+                            if (data.luggage !== undefined) cloudLuggage = data.luggage;
+                            if (data.flight !== undefined) cloudFlight = data.flight;
+                        } else {
+                            if(isAdmin) saveToCloud();
+                        }
+                        const isDetailPage = document.getElementById('edit-modal') && !document.getElementById('edit-modal').classList.contains('hidden');
+                        if (!isDetailPage && typeof window.renderHome === 'function') {
+                            if (document.querySelector('button[onclick="renderHome()"]')) {
+                                // 正在內頁
+                            } else {
+                                window.renderHome();
+                            }
+                        }
+                    }, (error) => console.error("Firestore error:", error));
+                }
+            });
+            initAuth();
+        }
+
+        async function saveToCloud() {
+            if (!isAdmin) return;
+            
+            applyDataOverrides(tripData);
+            
+            localStorage.setItem('localTripData', JSON.stringify(tripData));
+            localStorage.setItem('localMemo', cloudMemo);
+            localStorage.setItem('localRules', cloudRules);
+            localStorage.setItem('localMapLink', cloudMapLink);
+            localStorage.setItem('localLuggage', cloudLuggage);
+            localStorage.setItem('localFlight', JSON.stringify(cloudFlight));
+
+            if (isCloudEnabled && auth.currentUser) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'tripInfo', 'main');
+                    await setDoc(docRef, { tripData: tripData, memo: cloudMemo, rules: cloudRules, mapLink: cloudMapLink, luggage: cloudLuggage, flight: cloudFlight }, { merge: true });
+                } catch(e) {
+                    console.error("寫入雲端失敗，請確認 Firestore 安全規則是否設為測試模式", e);
+                }
+            }
+        }
+
+        // --- UI 輔助功能 ---
+        window.showToast = function(msg) {
+            const toast = document.getElementById('toast-msg');
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            void toast.offsetWidth; 
+            toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3000);
+        };
+
+        window.toggleAdmin = function() {
+            if (isAdmin) {
+                isAdmin = false;
+                localStorage.setItem('tripAdmin', 'false');
+                window.showToast("已登出管理員編輯模式，畫面切換為純檢視。");
+                window.renderHome();
+            } else {
+                document.getElementById('admin-pwd-input').value = '';
+                document.getElementById('admin-error-msg').classList.add('hidden');
+                document.getElementById('admin-modal').classList.remove('hidden');
+                document.getElementById('admin-modal').classList.add('flex');
+            }
+        };
+
+        window.closeAdminModal = function() {
+            document.getElementById('admin-modal').classList.add('hidden');
+            document.getElementById('admin-modal').classList.remove('flex');
+        };
+
+        window.verifyAdmin = function() {
+            const pwd = document.getElementById('admin-pwd-input').value;
+            if (pwd === "0411") {
+                isAdmin = true;
+                localStorage.setItem('tripAdmin', 'true');
+                window.showToast("🔓 解鎖成功！您可以修改行程內容了。");
+                saveToCloud(); 
+                window.closeAdminModal();
+                window.renderHome();
+            } else {
+                document.getElementById('admin-error-msg').classList.remove('hidden');
+            }
+        };
+
+        window.editField = function(dayIndex, field, title) {
+            currentEditTarget = { dayIndex, field };
+            document.getElementById('edit-title').innerText = "編輯 " + title;
+            
+            let content = "";
+            const helperText = document.getElementById('edit-helper-text');
+            
+            if (field === 'mapLink') {
+                content = cloudMapLink;
+                helperText.innerHTML = "💡 <b>寶藏地圖：</b>請貼上您的 Google Map 清單完整網址 (https://...)。";
+                helperText.classList.remove('hidden');
+            } else if (field === 'flight') {
+                content = cloudFlight.map(f => {
+                    if (f.type === 'note') return `備註 | ${f.text}`;
+                    return `${f.label} | ${f.date} | ${f.flight} | ${f.t1} | ${f.p1} | ${f.t2} | ${f.p2}`;
+                }).join('\n');
+                helperText.innerHTML = "💡 <b>航班格式：</b><br>去/回程：<code>標籤 | 日期 | 航班號 | 起飛時間 | 起飛地 | 降落時間 | 目的地</code><br>備註區：<code>備註 | 內容</code>";
+                helperText.classList.remove('hidden');
+            } else if (field === 'schedule') {
+                content = tripData[dayIndex][field].map(item => {
+                    let parts = [item.time, item.event];
+                    if (item.type || item.note || item.img) parts.push(item.type || '');
+                    if (item.note || item.img) parts.push(item.note || '');
+                    if (item.img) parts.push(item.img || '');
+                    while(parts.length > 2 && parts[parts.length-1] === '') parts.pop();
+                    return parts.join(' | ');
+                }).join('\n');
+                
+                helperText.innerHTML = "💡 <b>時間軸格式：</b><code>時間 | 內容 | 標籤 | 備註 | 圖片網址</code><br>（順序隨意，系統會自動抓出網址！想變小字請加 <code>minor</code>）";
+                helperText.classList.remove('hidden');
+            } else if (field === 'rooms') {
+                if (!tripData[dayIndex].rooms) tripData[dayIndex].rooms = [];
+                content = tripData[dayIndex].rooms.map(room => {
+                    let parts = [room.guest, room.type];
+                    if (room.img) parts.push(room.img);
+                    return parts.join(' | ');
+                }).join('\n');
+                
+                helperText.innerHTML = "💡 <b>房型格式：</b><code>入住者 | 房型 | 圖片網址</code><br>⚠️ 請對著圖片按右鍵選「<b>複製圖片位址</b>」(不能是網頁連結喔)";
+                helperText.classList.remove('hidden');
+            } else if (field === 'dining') {
+                if (!tripData[dayIndex].dining) tripData[dayIndex].dining = [];
+                content = tripData[dayIndex].dining.map(d => {
+                    let parts = [d.meal, d.name];
+                    if (d.img) parts.push(d.img);
+                    return parts.join(' | ');
+                }).join('\n');
+                
+                helperText.innerHTML = "💡 <b>餐飲格式：</b><code>餐別 | 餐廳名稱 | 圖片網址</code><br>⚠️ 請對著圖片按右鍵選「<b>複製圖片位址</b>」。";
+                helperText.classList.remove('hidden');
+            } else {
+                content = tripData[dayIndex][field] || "";
+                helperText.classList.add('hidden');
+            }
+
+            document.getElementById('edit-textarea').value = content;
+            document.getElementById('edit-modal').classList.remove('hidden');
+            document.getElementById('edit-modal').classList.add('flex');
+        };
+
+        window.saveEdit = function() {
+            if (currentEditTarget) {
+                const targetDayIndex = currentEditTarget.dayIndex;
+                const targetField = currentEditTarget.field;
+                const rawValue = document.getElementById('edit-textarea').value;
+                
+                if (targetField === 'mapLink') {
+                    cloudMapLink = rawValue.trim();
+                    saveToCloud();
+                    window.closeEditModal();
+                    window.renderHome();
+                    window.showToast("寶藏地圖連結已更新！");
+                    return;
+                } else if (targetField === 'flight') {
+                    const lines = rawValue.split('\n').filter(line => line.trim() !== '');
+                    cloudFlight = lines.map(line => {
+                        const parts = line.split('|').map(p => p.trim());
+                        if (parts[0] === '備註') return { type: 'note', text: parts[1] || '' };
+                        return { type: parts[0] === '回程' ? 'inbound' : 'outbound', label: parts[0] || '', date: parts[1] || '', flight: parts[2] || '', t1: parts[3] || '', p1: parts[4] || '', t2: parts[5] || '', p2: parts[6] || '' };
+                    });
+                    saveToCloud();
+                    window.closeEditModal();
+                    window.renderHome();
+                    window.showToast("航班資訊已更新！");
+                    return;
+                }
+
+                if (targetField === 'schedule') {
+                    const lines = rawValue.split('\n').filter(line => line.trim() !== '');
+                    const newSchedule = lines.map(line => {
+                        const parts = line.split('|').map(p => p.trim());
+                        const obj = { time: parts[0] || '', event: parts[1] || '' };
+                        for (let i = 2; i < parts.length; i++) {
+                            const p = parts[i];
+                            if (p.startsWith('http') || p.startsWith('data:')) {
+                                obj.img = p;
+                            } else if (p.toLowerCase() === 'minor') {
+                                obj.type = 'minor';
+                            } else if (p !== '') {
+                                obj.note = obj.note ? obj.note + ' ' + p : p;
+                            }
+                        }
+                        return obj;
+                    });
+                    tripData[targetDayIndex][targetField] = newSchedule;
+                } else if (targetField === 'rooms') {
+                    const lines = rawValue.split('\n').filter(line => line.trim() !== '');
+                    tripData[targetDayIndex].rooms = lines.map(line => {
+                        const parts = line.split('|').map(p => p.trim());
+                        const obj = { guest: parts[0] || '', type: parts[1] || '' };
+                        for (let i = 2; i < parts.length; i++) {
+                            if (parts[i].startsWith('http') || parts[i].startsWith('data:')) obj.img = parts[i];
+                            else obj.type += ' ' + parts[i];
+                        }
+                        return obj;
+                    });
+                } else if (targetField === 'dining') {
+                    const lines = rawValue.split('\n').filter(line => line.trim() !== '');
+                    tripData[targetDayIndex].dining = lines.map(line => {
+                        const parts = line.split('|').map(p => p.trim());
+                        const obj = { meal: parts[0] || '', name: parts[1] || '' };
+                        for (let i = 2; i < parts.length; i++) {
+                            if (parts[i].startsWith('http') || parts[i].startsWith('data:')) obj.img = parts[i];
+                            else obj.name += ' ' + parts[i];
+                        }
+                        return obj;
+                    });
+                } else {
+                    tripData[targetDayIndex][targetField] = rawValue;
+                }
+                
+                saveToCloud();
+                window.closeEditModal();
+                window.renderDetail(targetDayIndex);
+            }
+        };
+
+        window.closeEditModal = function() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('flex');
+            currentEditTarget = null;
+        };
+
+        window.saveMemo = function() {
+            if (!isAdmin) return;
+            cloudMemo = document.getElementById('memo-textarea').value;
+            saveToCloud();
+            window.showToast("備忘錄已儲存！");
+        };
+
+        window.saveRules = function() {
+            if (!isAdmin) return;
+            cloudRules = document.getElementById('rules-textarea').value;
+            saveToCloud();
+            window.showToast("旅遊守則已儲存！");
+        };
+
+        // --- 行李清單互動邏輯 ---
+        window.renderLuggageChecklist = function() {
+            const container = document.getElementById('luggage-checklist-view');
+            // 清除標記如 □, -, * 等，保留純文字以做唯一 Key
+            const items = cloudLuggage.split('\n')
+                .map(line => line.trim().replace(/^[□\-*·\s]+/, ''))
+                .filter(line => line !== '');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<p class="text-sm text-morandi-text-light text-center py-5 col-span-2">目前尚無行李項目</p>';
+                return;
+            }
+
+            container.innerHTML = items.map((item) => {
+                const isChecked = personalLuggageState[item] ? true : false;
+                const escapedItem = item.replace(/'/g, "\\'");
+                return `
+                <label class="flex items-start p-2.5 bg-white border ${isChecked ? 'border-morandi-red-light/50 bg-morandi-bg/30' : 'border-morandi-red-light/80'} rounded-xl cursor-pointer transition-colors shadow-sm select-none">
+                    <input type="checkbox" style="accent-color: #B86F72;" class="w-4 h-4 mt-0.5 rounded border-morandi-red-light text-morandi-red flex-shrink-0" onchange="toggleLuggageItem('${escapedItem}')" ${isChecked ? 'checked' : ''}>
+                    <span class="ml-2 text-[11px] leading-tight font-bold transition-all ${isChecked ? 'text-morandi-text-light opacity-60' : 'text-morandi-text'} break-words">${item}</span>
+                </label>
+                `;
+            }).join('');
+        };
+
+        window.toggleLuggageItem = function(item) {
+            personalLuggageState[item] = !personalLuggageState[item];
+            localStorage.setItem('personalLuggageState', JSON.stringify(personalLuggageState));
+            window.renderLuggageChecklist();
+        };
+
+        window.toggleLuggageEditMode = function() {
+            const checklistView = document.getElementById('luggage-checklist-view');
+            const editView = document.getElementById('luggage-modal-textarea');
+            const saveBtn = document.getElementById('luggage-save-btn-container');
+            const toggleBtn = document.getElementById('luggage-edit-toggle-btn');
+
+            if (checklistView.classList.contains('hidden')) {
+                // 回到打勾檢視模式
+                checklistView.classList.remove('hidden');
+                editView.classList.add('hidden');
+                saveBtn.classList.add('hidden');
+                toggleBtn.innerText = '編輯清單';
+                window.renderLuggageChecklist();
+            } else {
+                // 進入管理員編輯模式
+                checklistView.classList.add('hidden');
+                editView.classList.remove('hidden');
+                saveBtn.classList.remove('hidden');
+                toggleBtn.innerText = '返回打勾';
+                editView.value = cloudLuggage;
+            }
+        };
+
+        window.openLuggageModal = function() {
+            const modal = document.getElementById('luggage-modal');
+            const toggleBtn = document.getElementById('luggage-edit-toggle-btn');
+            
+            // 每次打開都預設顯示打勾清單
+            document.getElementById('luggage-checklist-view').classList.remove('hidden');
+            document.getElementById('luggage-modal-textarea').classList.add('hidden');
+            document.getElementById('luggage-save-btn-container').classList.add('hidden');
+            
+            if (isAdmin) {
+                toggleBtn.classList.remove('hidden');
+                toggleBtn.innerText = '編輯清單';
+            } else {
+                toggleBtn.classList.add('hidden');
+            }
+            
+            window.renderLuggageChecklist();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeLuggageModal = function() {
+            const modal = document.getElementById('luggage-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.saveLuggage = function() {
+            if (!isAdmin) return;
+            cloudLuggage = document.getElementById('luggage-modal-textarea').value;
+            saveToCloud();
+            window.showToast("行李清單已同步更新！");
+            window.toggleLuggageEditMode(); // 存檔後切回打勾模式
+        };
+        // --- 結束行李清單互動邏輯 ---
+
+        window.openImageModal = function(imgSrc) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-image');
+            modalImg.src = imgSrc;
+            modalImg.onerror = function() { 
+                this.onerror = null;
+                this.src = 'https://placehold.co/600x400/E8D5D6/8C4F52?text=圖片失效'; 
+            };
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+        
+        window.closeImageModal = function() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.renderHome = function() {
+            const app = document.getElementById('app');
+            const savedMemo = cloudMemo || '';
+            const savedRules = cloudRules || '';
+            
+            let cardsHtml = tripData.map((day, index) => {
+                let titleSize = 'text-[13px]';
+                let titleClasses = 'leading-tight line-clamp-2 w-full break-words';
+                
+                const strippedTitle = day.shortTitle.replace(/<br>/g, '');
+                
+                if (day.shortTitle.includes('<br>')) {
+                    titleSize = 'text-[11px] sm:text-[12px]';
+                    titleClasses = 'leading-[1.3] w-full flex flex-col justify-center items-center mt-0.5 gap-0.5';
+                } else if (strippedTitle.length >= 7) {
+                    titleSize = 'text-[9.5px] tracking-tighter';
+                    titleClasses = 'leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-0 scale-95 origin-center';
+                } else if (strippedTitle.length > 5) {
+                    titleSize = 'text-[11px]';
+                }
+                
+                return `
+                <div onclick="renderDetail(${index})" class="relative bg-white rounded-xl p-2 shadow-sm cursor-pointer transform transition active:scale-95 border border-morandi-red-light/30 hover:border-morandi-red/50 hover:shadow-md flex flex-col items-center justify-center text-center aspect-square overflow-hidden group">
+                    <div class="relative z-10 flex flex-col items-center w-full">
+                        <div class="flex items-baseline space-x-1 mb-1.5">
+                            <span class="text-morandi-red font-bold text-sm">Day${day.day}</span>
+                            <span class="text-morandi-text-light text-[10px] font-medium">${day.date}</span>
+                        </div>
+                        <div class="text-morandi-red/40 mb-1.5 group-hover:scale-110 group-hover:text-morandi-red transition-all duration-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                ${day.iconSvg}
+                            </svg>
+                        </div>
+                        <div class="text-morandi-text font-bold ${titleSize} ${titleClasses}">
+                            ${day.shortTitle}
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+
+            app.innerHTML = `
+                <div class="fade-in pb-12">
+                    <div class="bg-morandi-red pt-12 pb-14 px-6 rounded-b-[2.5rem] relative overflow-hidden shadow-md">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+                        <div class="absolute -left-5 top-20 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+                        
+                        <div class="relative z-10 flex flex-col items-center text-center">
+                            <!-- 專屬招財貓頭 SVG 插圖 -->
+                            <div class="mb-3 relative flex items-center justify-center w-24 h-24 bg-white/20 rounded-full backdrop-blur-sm border border-white/40 shadow-inner">
+                                <svg viewBox="0 0 100 100" class="w-[85px] h-[85px] drop-shadow-md translate-y-0.5" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Back Ears -->
+                                    <path d="M 12 35 Q 16 5 28 8 Q 35 12 42 22 Z" fill="white" stroke="#B4B4B4" stroke-width="1.5" stroke-linejoin="round"/>
+                                    <path d="M 17 31 Q 20 12 28 14 Q 32 17 36 21 Z" fill="#C35B30"/>
+                                    
+                                    <path d="M 88 35 Q 84 5 72 8 Q 65 12 58 22 Z" fill="white" stroke="#B4B4B4" stroke-width="1.5" stroke-linejoin="round"/>
+                                    <path d="M 83 31 Q 80 12 72 14 Q 68 17 64 21 Z" fill="#C35B30"/>
+
+                                    <!-- Face Base -->
+                                    <ellipse cx="50" cy="55" rx="45" ry="40" fill="white" stroke="#B4B4B4" stroke-width="1.5"/>
+
+                                    <!-- Top Patch -->
+                                    <path d="M 33 20 Q 50 12 67 20 Q 50 26 33 20 Z" fill="#5E2E2A"/>
+
+                                    <!-- Eyes -->
+                                    <path d="M 20 54 Q 30 52 40 54" fill="none" stroke="#273238" stroke-width="3" stroke-linecap="round"/>
+                                    <line x1="25" y1="52" x2="25" y2="47" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="30" y1="51.5" x2="30" y2="46" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="35" y1="52" x2="35" y2="47" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+
+                                    <path d="M 80 54 Q 70 52 60 54" fill="none" stroke="#273238" stroke-width="3" stroke-linecap="round"/>
+                                    <line x1="75" y1="52" x2="75" y2="47" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="70" y1="51.5" x2="70" y2="46" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="65" y1="52" x2="65" y2="47" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+
+                                    <!-- Nose -->
+                                    <path d="M 47.5 62 Q 50 60 52.5 62 L 50 65 Z" fill="#273238"/>
+
+                                    <!-- Mouth -->
+                                    <path d="M 50 65 L 50 67" stroke="#273238" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M 40 64 Q 45 72 50 67 Q 55 72 60 64" fill="none" stroke="#273238" stroke-width="1.5" stroke-linecap="round"/>
+
+                                    <!-- Whiskers -->
+                                    <line x1="8" y1="62" x2="26" y2="65" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="6" y1="68" x2="26" y2="69" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="8" y1="74" x2="26" y2="72" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+
+                                    <line x1="92" y1="62" x2="74" y2="65" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="94" y1="68" x2="74" y2="69" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="92" y1="74" x2="74" y2="72" stroke="#273238" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <span class="text-white/80 text-xs font-bold tracking-widest mb-1 uppercase">NAGOYA & GIFU</span>
+                            <h1 class="text-white text-2xl font-bold tracking-widest mb-2" style="font-family: '微軟正黑體', sans-serif;">日本中部家庭旅遊</h1>
+                            <p class="text-morandi-red-dark bg-white/90 font-bold text-sm mt-1 px-4 py-1.5 rounded-full shadow-sm">4 / 11 ~ 4 / 19</p>
+                        </div>
+                    </div>
+
+                    <div class="px-5 -mt-6 relative z-20 grid grid-cols-3 gap-3">
+                        ${cardsHtml}
+                    </div>
+
+                    <!-- 尋寶地圖按鈕區塊 -->
+                    <div class="px-5 mt-6 relative z-20">
+                        <a href="${cloudMapLink}" target="_blank" onclick="if('${cloudMapLink}'==='#'){alert('請管理員先設定地圖連結！'); return false;}" class="w-full bg-gradient-to-r from-[#D4A373] to-[#B86F72] text-white font-bold py-3.5 rounded-2xl shadow-lg flex items-center justify-center transform transition active:scale-95 hover:shadow-xl border border-white/20">
+                            <svg class="w-5 h-5 mr-2 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                            去找吧！我把所有財寶都放在那了！
+                        </a>
+                        ${isAdmin ? `<button onclick="editField(null, 'mapLink', '寶藏地圖連結')" class="mt-2.5 text-[11px] text-morandi-text-light underline w-full text-center flex items-center justify-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> 編輯地圖網址</button>` : ''}
+                    </div>
+
+                    <div class="px-5 mt-6 space-y-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-1.5 h-5 bg-morandi-red rounded-full"></div>
+                                <h2 class="text-lg font-bold text-morandi-text">重要資訊</h2>
+                            </div>
+                            <button onclick="toggleAdmin()" class="flex items-center text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${isAdmin ? 'bg-morandi-red text-white shadow-sm' : 'bg-morandi-bg border border-morandi-red-light text-morandi-text-light hover:bg-morandi-red-light/20'}">
+                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isAdmin ? 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z' : 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'}"></path></svg>
+                                ${isAdmin ? '管理員(點擊登出)' : '編輯權限'}
+                            </button>
+                        </div>
+                        
+                        <div class="bg-morandi-card rounded-2xl p-4 shadow-soft border border-morandi-red-light/40">
+                            <div class="flex items-center justify-between border-b border-morandi-red-light/30 pb-3 mb-3">
+                                <div class="flex items-center text-morandi-red font-bold">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    航班資訊
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-1.5 bg-red-50 px-2 py-1 rounded-md border border-red-100">
+                                        <div class="w-4 h-4 rounded-full bg-[#cc0000] flex items-center justify-center">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                                        </div>
+                                        <span class="text-[11px] font-bold text-[#cc0000]">JAPAN AIRLINES</span>
+                                    </div>
+                                    ${isAdmin ? `<button onclick="editField(null, 'flight', '航班資訊')" class="text-morandi-text-light hover:text-morandi-red bg-morandi-bg p-1.5 rounded-md transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>` : ''}
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                ${cloudFlight.map(f => {
+                                    if (f.type === 'note') {
+                                        return `
+                                        <div class="flex items-center justify-center bg-white border border-morandi-red-light/50 rounded-lg p-2.5 mt-2 shadow-inner-soft text-left">
+                                            <svg class="w-4 h-4 text-morandi-red mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                            <span class="text-xs font-bold text-morandi-text">${f.text}</span>
+                                        </div>`;
+                                    } else {
+                                        const badgeColor = f.label === '回程' ? 'bg-morandi-red-dark' : 'bg-morandi-red';
+                                        const arrowColor = f.label === '回程' ? 'text-morandi-red-dark' : 'text-morandi-red';
+                                        return `
+                                        <div class="bg-morandi-bg/60 rounded-xl p-3 border border-morandi-red-light/20 relative mt-2 text-left">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <span class="${badgeColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full">${f.label}</span>
+                                                <span class="text-xs font-bold text-morandi-text-light">${f.date} | ${f.flight}</span>
+                                            </div>
+                                            <div class="flex justify-between items-center px-1">
+                                                <div class="text-center w-16">
+                                                    <div class="text-xl font-bold text-morandi-text tracking-wider">${f.t1}</div>
+                                                    <div class="text-[10px] text-morandi-text-light mt-0.5 font-bold">${f.p1}</div>
+                                                </div>
+                                                <div class="flex flex-col items-center justify-center flex-1 px-3">
+                                                    <div class="w-full border-t-2 border-dashed border-morandi-red-light/80 relative my-2">
+                                                        <svg class="w-4 h-4 ${arrowColor} absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-morandi-bg/60 px-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                                                    </div>
+                                                </div>
+                                                <div class="text-center w-16">
+                                                    <div class="text-xl font-bold text-morandi-text tracking-wider">${f.t2}</div>
+                                                    <div class="text-[10px] text-morandi-text-light mt-0.5 font-bold">${f.p2}</div>
+                                                </div>
+                                            </div>
+                                        </div>`;
+                                    }
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- 行李清單區塊 (卡片點擊) -->
+                        <div onclick="openLuggageModal()" class="bg-white rounded-2xl p-4 shadow-soft border border-morandi-red-light/40 cursor-pointer transform transition active:scale-95 hover:shadow-md flex items-center justify-between group">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-morandi-bg border border-morandi-red-light/50 flex items-center justify-center mr-3 group-hover:bg-morandi-red-light/30 transition-colors">
+                                    <svg class="w-5 h-5 text-morandi-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                </div>
+                                <div class="flex flex-col text-left">
+                                    <span class="font-bold text-morandi-red text-md">行李清單</span>
+                                    <span class="text-xs text-morandi-text-light mt-0.5">點擊查看並打勾準備出發物品</span>
+                                </div>
+                            </div>
+                            <svg class="w-5 h-5 text-morandi-red-light group-hover:text-morandi-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+
+                        <!-- 旅遊守則區塊 -->
+                        <div class="bg-morandi-card rounded-2xl p-4 shadow-soft border border-morandi-red-light/40">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center text-morandi-red font-bold">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    旅遊守則
+                                </div>
+                                ${isAdmin ? '<button onclick="saveRules()" class="text-xs bg-morandi-red text-white px-3.5 py-1.5 rounded-lg shadow-sm active:scale-95 transition-colors hover:bg-morandi-red-dark">儲存</button>' : '<span class="text-[10px] text-morandi-text-light bg-morandi-bg px-2 py-0.5 rounded">唯讀模式</span>'}
+                            </div>
+                            <textarea 
+                                id="rules-textarea"
+                                ${isAdmin ? '' : 'readonly'}
+                                class="w-full h-24 bg-morandi-bg border border-morandi-red-light rounded-xl p-3 text-sm text-morandi-text focus:border-morandi-red transition-colors placeholder-morandi-text-light/50 leading-relaxed" 
+                                placeholder="點擊編輯旅遊守則...">${savedRules}</textarea>
+                        </div>
+
+                        <!-- 備忘錄區塊 -->
+                        <div class="bg-morandi-card rounded-2xl p-4 shadow-soft border border-morandi-red-light/40">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center text-morandi-red font-bold">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    備忘錄
+                                </div>
+                                ${isAdmin ? '<button onclick="saveMemo()" class="text-xs bg-morandi-red text-white px-3.5 py-1.5 rounded-lg shadow-sm active:scale-95 transition-colors hover:bg-morandi-red-dark">儲存</button>' : '<span class="text-[10px] text-morandi-text-light bg-morandi-bg px-2 py-0.5 rounded">唯讀模式</span>'}
+                            </div>
+                            <textarea 
+                                id="memo-textarea"
+                                ${isAdmin ? '' : 'readonly'}
+                                class="w-full h-32 bg-morandi-bg border border-morandi-red-light rounded-xl p-3 text-sm text-morandi-text focus:border-morandi-red transition-colors placeholder-morandi-text-light/50 leading-relaxed" 
+                                placeholder="${isAdmin ? '點擊這裡記錄重要事項、購物清單或花費，編輯完請點擊右上方「儲存」按鈕...' : '目前尚無備忘錄內容。'}">${savedMemo}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- 作者宣告版權頁尾 -->
+                    <div class="mt-10 mb-2 flex items-center justify-center text-[10px] text-morandi-text-light/60 font-medium tracking-widest select-none pb-2">
+                        <svg class="w-3.5 h-3.5 mr-1.5 opacity-80 -scale-x-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 6.06 6s-2.5 6-6.06 6c-3.56 0-7.56-2.54-8.5-6Z"/>
+                            <path d="M18 11v.01"/>
+                            <path d="M4 15c1.4-1.4 1.4-4.6 0-6C2.6 10.4 2.6 13.6 4 15Z"/>
+                        </svg>
+                        2026 HYC. All Rights Reserved.
+                    </div>
+
+                </div>
+            `;
+        };
+
+        window.renderDetail = function(index) {
+            const day = tripData[index];
+            const app = document.getElementById('app');
+
+            let scheduleHtml = day.schedule.map((item, i) => {
+                const isLast = i === day.schedule.length - 1;
+                const lineHtml = !isLast ? '<div class="absolute w-0.5 bg-morandi-red-light left-[-1px] top-3 bottom-0 -z-0"></div>' : '';
+                
+                const rotClasses = ['rotate-3', '-rotate-3', 'rotate-6', '-rotate-6'];
+                const posClasses = ['-right-3 -bottom-5', 'right-1 -top-4', '-right-2 top-1', 'right-4 -bottom-4'];
+                const tapeColor = ['bg-morandi-red/40', 'bg-[#c5a38b]/40', 'bg-[#8d9e91]/40', 'bg-[#a39382]/40']; 
+                
+                const rot = rotClasses[i % 4];
+                const pos = posClasses[i % 4];
+                const tape = tapeColor[i % 4];
+
+                const imgHtml = item.img ? `
+                    <div class="absolute ${pos} ${rot} w-[72px] h-[84px] bg-white p-1 pb-4 shadow-md border border-gray-200 cursor-pointer transition-all duration-300 hover:scale-125 hover:rotate-0 hover:z-50 z-20" onclick="openImageModal('${item.img}')">
+                        <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-2.5 ${tape} backdrop-blur-sm -rotate-2 z-30 shadow-sm mix-blend-multiply"></div>
+                        <img src="${item.img}" class="w-full h-full object-cover border border-gray-100" onerror="this.onerror=null; this.src='https://placehold.co/100x100/E8D5D6/8C4F52?text=無圖'" alt="手帳照片">
+                    </div>
+                ` : '';
+
+                if (item.type === 'minor') {
+                    return `
+                    <div class="relative pl-6 pb-4 ${isLast ? 'pb-0' : ''}">
+                        <div class="absolute w-2 h-2 bg-morandi-red-light rounded-full -left-[4px] top-[6px] z-10"></div>
+                        ${lineHtml}
+                        <div class="text-xs text-morandi-text-light flex items-center bg-white/50 px-2.5 py-1.5 rounded-lg border border-morandi-red-light/30 w-fit shadow-sm text-left relative z-10 group">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-morandi-red/70 flex-shrink-0 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span class="font-bold text-morandi-red/70 mr-1.5 relative z-10">${item.time}</span> 
+                            <span class="relative z-10">${item.event}</span>
+                            ${imgHtml}
+                        </div>
+                    </div>
+                    `;
+                }
+
+                return `
+                <div class="relative pl-6 pb-6 ${isLast ? 'pb-2' : ''}">
+                    <div class="absolute w-3 h-3 bg-morandi-red rounded-full -left-[6.5px] top-1.5 border-2 border-morandi-bg shadow-sm z-10"></div>
+                    ${lineHtml}
+                    <div class="text-sm font-bold text-morandi-red mb-1 text-left">${item.time}</div>
+                    <div class="relative text-morandi-text bg-white p-3 rounded-xl shadow-sm border border-morandi-red-light/20 w-full text-left z-10 group">
+                        <div class="break-words relative z-10 pr-6 text-left">${item.event}</div>
+                        ${item.note ? `<div class="mt-2 pt-2 border-t border-morandi-red-light/20 text-xs text-morandi-text-light flex items-start relative z-10 text-left"><svg class="w-3.5 h-3.5 mr-1 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="break-words pr-6">${item.note}</span></div>` : ''}
+                        ${imgHtml}
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // 強制清除可能造成跑版的隱形全形/半形空白，保證絕對貼齊左側
+            let rawOtherInfo = (day.otherInfo || "尚未新增資訊。")
+                                .split('\n')
+                                .map(line => line.replace(/^[\s\uFEFF\xA0\u3000]+/g, '').trim())
+                                .filter(line => line !== '')
+                                .join('\n');
+            let otherInfoHtml = rawOtherInfo.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-morandi-red underline break-all hover:text-morandi-red-dark">$1</a>');
+
+            app.innerHTML = `
+                <div class="slide-in-right bg-morandi-bg min-h-screen pb-12 flex flex-col">
+                    <div class="sticky top-0 z-50 bg-morandi-bg/90 backdrop-blur-md border-b border-morandi-red-light/50 px-4 py-4 flex items-center justify-between shadow-sm">
+                        <button onclick="renderHome()" class="flex items-center text-morandi-red font-bold active:opacity-50 transition">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            返回
+                        </button>
+                        <div class="text-morandi-text font-bold text-lg">${day.date} Day ${day.day}</div>
+                        <div class="w-16"></div>
+                    </div>
+
+                    <div class="flex-1 px-5 pt-6 space-y-5">
+                        <div class="bg-morandi-card rounded-2xl p-5 shadow-soft border border-morandi-red-light/40 relative group">
+                            <div class="flex justify-between items-center mb-4 border-b border-morandi-red-light/30 pb-2">
+                                <h3 class="text-md font-bold text-morandi-red flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    行程規劃
+                                </h3>
+                                ${isAdmin ? `<button onclick="editField(${index}, 'schedule', '行程規劃')" class="text-morandi-text-light hover:text-morandi-red bg-morandi-bg p-1.5 rounded-md transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>` : ''}
+                            </div>
+                            <div class="relative mt-2">
+                                <div class="absolute w-0.5 bg-morandi-red-light left-[-1px] top-2 bottom-6 -z-0"></div>
+                                ${scheduleHtml}
+                            </div>
+                        </div>
+
+                        ${(day.dining && day.dining.length > 0 || isAdmin) ? `
+                        <div class="bg-morandi-card rounded-2xl p-4.5 shadow-soft border border-morandi-red-light/40 p-4 relative group">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-md font-bold text-morandi-red flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"></path></svg>
+                                    餐飲資訊
+                                </h3>
+                                ${isAdmin ? `<button onclick="editField(${index}, 'dining', '餐飲資訊')" class="text-morandi-text-light hover:text-morandi-red bg-morandi-bg p-1.5 rounded-md transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>` : ''}
+                            </div>
+                            ${day.dining && day.dining.length > 0 ? `<div class="grid grid-cols-2 gap-2.5 mt-2">` + day.dining.map(d => `
+                                <div class="bg-white/80 rounded-xl border border-morandi-red-light/30 overflow-hidden shadow-sm flex flex-col">
+                                    ${d.img ? `
+                                    <div class="h-24 w-full relative cursor-pointer group bg-morandi-bg/30" onclick="openImageModal('${d.img}')">
+                                        <img src="${d.img}" onerror="this.onerror=null; this.src='https://placehold.co/600x400/E8D5D6/8C4F52?text=圖片載入失敗'" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="餐飲照片">
+                                        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-300"></div>
+                                        <div class="absolute bottom-1.5 right-1.5 bg-black/40 rounded-full p-1 backdrop-blur-sm">
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                                        </div>
+                                    </div>
+                                    ` : `
+                                    <div class="h-16 w-full bg-morandi-bg/50 flex flex-col items-center justify-center border-b border-morandi-red-light/20">
+                                        <svg class="w-5 h-5 text-morandi-red-light mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        <span class="text-[9px] text-morandi-red/40 font-bold tracking-wider">NO PHOTO</span>
+                                    </div>
+                                    `}
+                                    <div class="p-2 flex items-center justify-center text-center flex-1 w-full">
+                                        <div class="text-[10.5px] leading-tight line-clamp-2">
+                                            <span class="font-bold text-morandi-red-dark mr-1">${d.meal}</span><span class="text-morandi-text">${d.name}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('') + `</div>` : '<div class="text-xs text-morandi-text-light py-1 text-left">點擊右上角按鈕新增餐飲資訊</div>'}
+                        </div>
+                        ` : ''}
+
+                        <div class="bg-morandi-card rounded-2xl p-4.5 shadow-soft border border-morandi-red-light/40 p-4 relative group">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-md font-bold text-morandi-red flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1m-6 0h6"></path></svg>
+                                    住宿資訊
+                                </h3>
+                                ${isAdmin ? `<button onclick="editField(${index}, 'hotel', '飯店名稱')" class="text-morandi-text-light hover:text-morandi-red bg-morandi-bg p-1.5 rounded-md transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>` : ''}
+                            </div>
+                            <div class="text-sm font-bold text-morandi-text bg-morandi-bg p-3 rounded-xl flex flex-col">
+                                <div class="flex justify-between items-center">
+                                    <span class="flex-1 text-left">${day.hotel}</span>
+                                    ${day.hotelMap ? `<a href="${day.hotelMap}" target="_blank" class="ml-2 flex-shrink-0 flex items-center bg-white border border-morandi-red-light text-morandi-red text-xs px-2.5 py-1.5 rounded-lg shadow-sm hover:bg-morandi-red hover:text-white transition-colors active:scale-95">查看地圖 <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></a>` : ''}
+                                </div>
+                                <div class="mt-3 space-y-2 border-t border-morandi-red-light/40 pt-3 relative group">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <div class="text-xs font-bold text-morandi-text-light">房型方案</div>
+                                        ${isAdmin ? `<button onclick="editField(${index}, 'rooms', '房型方案與圖片')" class="text-morandi-text-light hover:text-morandi-red bg-morandi-bg p-1.5 rounded-md transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>` : ''}
+                                    </div>
+                                    ${day.rooms && day.rooms.length > 0 ? `<div class="grid grid-cols-2 gap-2.5 mt-2">` + day.rooms.map(room => `
+                                        <div class="bg-white/80 rounded-xl border border-morandi-red-light/30 overflow-hidden shadow-sm flex flex-col">
+                                            <div class="h-24 w-full relative cursor-pointer group bg-morandi-bg/30" onclick="openImageModal('${room.img}')">
+                                                <img src="${room.img}" onerror="this.onerror=null; this.src='https://placehold.co/600x400/E8D5D6/8C4F52?text=圖片載入失敗'" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="房型照片">
+                                                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-300"></div>
+                                                <div class="absolute bottom-1.5 right-1.5 bg-black/40 rounded-full p-1 backdrop-blur-sm">
+                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                                                </div>
+                                            </div>
+                                            <div class="p-2 flex flex-col items-center text-center">
+                                                <span class="font-bold text-morandi-red-dark text-[11px] mb-0.5">${room.guest}</span>
+                                                <span class="text-morandi-text text-[10px] leading-tight line-clamp-1">${room.type}</span>
+                                            </div>
+                                        </div>
+                                    `).join('') + `</div>` : '<div class="text-xs text-morandi-text-light py-1 text-left">點擊右上角按鈕新增房型資訊</div>'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-morandi-card rounded-2xl p-4.5 shadow-soft border border-morandi-red-light/40 p-4 relative group text-left">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-md font-bold text-morandi-red flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    其他資訊
+                                </h3>
+                                ${isAdmin ? `<button onclick="editField(${index}, 'otherInfo', '其他資訊')" class="text-morandi-text-light hover:text-morandi-red bg-morandi-bg p-1.5 rounded-md transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>` : ''}
+                            </div>
+                            <div class="text-sm text-morandi-text bg-morandi-bg p-3 rounded-xl leading-relaxed whitespace-pre-wrap text-left block w-full">${otherInfoHtml}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            app.scrollTop = 0;
+        };
+
+        window.onload = () => {
+            window.renderHome();
+        };
+    </script>
+</body>
+</html>
