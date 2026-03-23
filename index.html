@@ -20,45 +20,27 @@
     <!-- 3. 安卓強制讀取圖示的秘密武器 (內嵌 Manifest) -->
     <link rel="manifest" href='data:application/manifest+json;base64,eyAibmFtZSI6ICLml6XmnKzkuK3pg6jlrrblupPml4Xpg4oiLCAic2hvcnRfbmFtZSI6ICLml6XmnKzml4Xpg4oiLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgInN0YXJ0X3VybCI6ICIuIiwgImJhY2tncm91bmRfY29sb3MiOiAiI0Y3RjRGMiIsICJ0aGVtZV9jb2xvciI6ICIjQjg2RjcyIiwgImljb25zIjogW3sgInNyYyI6ICJpY29uLnBuZz92PTMiLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3BuZyIgfSwgeyAic3JjIjogImljb24ucG5nP3Y9MyIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiB9XSB9'>
 
-    <!-- 3. 安卓強制讀取圖示的終極武器 (動態生成 Manifest 絕對路徑) -->
-    <link rel="manifest" id="dynamic-manifest">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        (function() {
-            try {
-                // 取得目前網頁的絕對路徑
-                var baseUrl = window.location.href.split('#')[0];
-                
-                // 如果在預覽環境 (blob:, data:, about:) 中執行，則跳過以避免 URL 解析錯誤
-                if (baseUrl.startsWith('blob:') || baseUrl.startsWith('data:') || baseUrl.startsWith('about:')) {
-                    return;
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'morandi-bg': '#F7F4F2',
+                        'morandi-red': '#B86F72',
+                        'morandi-red-light': '#E8D5D6',
+                        'morandi-red-dark': '#8C4F52',
+                        'morandi-text': '#5A504E',
+                        'morandi-text-light': '#8E8584',
+                        'morandi-card': '#FFFFFF',
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px rgba(184, 111, 114, 0.08)',
+                        'inner-soft': 'inset 0 2px 4px rgba(0, 0, 0, 0.02)'
+                    }
                 }
-                
-                var iconUrl = new URL('icon.png?v=4', baseUrl).href;
-                
-                // 動態建立 Android PWA 清單
-                var manifest = {
-                    "name": "日本中部家庭旅遊",
-                    "short_name": "日本旅遊",
-                    "display": "standalone",
-                    "start_url": baseUrl,
-                    "background_color": "#F7F4F2",
-                    "theme_color": "#B86F72",
-                    "icons": [
-                        { "src": iconUrl, "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-                        { "src": iconUrl, "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-                    ]
-                };
-                
-                // 轉換成 Blob URL 餵給瀏覽器
-                var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-                var manifestElement = document.getElementById('dynamic-manifest');
-                if (manifestElement) {
-                    manifestElement.href = URL.createObjectURL(blob);
-                }
-            } catch (error) {
-                console.warn("Manifest generation skipped due to environment limitations:", error);
             }
-        })();
+        }
     </script>
     <style>
         body {
