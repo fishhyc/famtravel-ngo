@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>日本中部家庭旅遊</title>
     
-    <!-- 加入手機主畫面 (Add to Home Screen) 的專屬圖示設定 -->
+    <!-- 1. 蘋果 iOS 專用設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="日本旅遊">
-    <meta name="theme-color" content="#B86F72">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png?v=3">
     
-    <!-- 桌面圖示：加入尺寸宣告與 ?v=2 快取破解碼 (確保圖片為正方形且無透明背景) -->
-    <link rel="apple-touch-icon" sizes="180x180" href="icon.png?v=2">
-    <link rel="icon" type="image/png" sizes="192x192" href="icon.png?v=2">
-    <link rel="icon" type="image/png" sizes="32x32" href="icon.png?v=2">
+    <!-- 2. 安卓 Android 專用設定 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#B86F72">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon.png?v=3">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon.png?v=3">
+    
+    <!-- 3. 安卓強制讀取圖示的秘密武器 (內嵌 Manifest) -->
+    <link rel="manifest" href='data:application/manifest+json;base64,eyAibmFtZSI6ICLml6XmnKzkuK3pg6jlrrblupPml4Xpg4oiLCAic2hvcnRfbmFtZSI6ICLml6XmnKzml4Xpg4oiLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgInN0YXJ0X3VybCI6ICIuIiwgImJhY2tncm91bmRfY29sb3MiOiAiI0Y3RjRGMiIsICJ0aGVtZV9jb2xvciI6ICIjQjg2RjcyIiwgImljb25zIjogW3sgInNyYyI6ICJpY29uLnBuZz92PTMiLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3BuZyIgfSwgeyAic3JjIjogImljb24ucG5nP3Y9MyIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiB9XSB9'>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
